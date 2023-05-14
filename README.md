@@ -23,4 +23,4 @@ Github Repo reader
 Knowledge Graph
 - https://gpt-index.readthedocs.io/en/latest/examples/index_structs/knowledge_graph/KnowledgeGraphDemo.html
 - FLARE for Augmented Recall 
-https://github.com/jzbjyb/FLARE
+    - https://github.com/jzbjyb/FLARE
