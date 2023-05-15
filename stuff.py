@@ -17,6 +17,7 @@ import os
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+
 dataset = load_dataset("Nickgannon10/langchain-docs", split="train")
 
 data = dataset.to_pandas()

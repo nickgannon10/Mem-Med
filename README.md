@@ -16,6 +16,7 @@
 6. Covert Memory records into the index 
 - LLM Reranking in LlamaIndex
     - https://twitter.com/jerryjliu0/status/1657827898517012486
+- Filter by Patient, can't mix patient info 
 
 # Interesting Things to have around
 Github Repo reader
@@ -24,3 +25,7 @@ Knowledge Graph
 - https://gpt-index.readthedocs.io/en/latest/examples/index_structs/knowledge_graph/KnowledgeGraphDemo.html
 - FLARE for Augmented Recall 
     - https://github.com/jzbjyb/FLARE
+- Metaphor Langchain Intregration
+    - https://twitter.com/LangChainAI/status/1657860892837683201/photo/1
+- Load in for each person - ChatMessageHistory()
+    - https://twitter.com/LangChainAI/status/1657864015480242176
