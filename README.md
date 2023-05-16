@@ -1,3 +1,9 @@
+TO DO:
+- Need to embed memory in vector DB
+- Need to create a JSON memory that can be loaded in
+    - https://python.langchain.com/en/latest/modules/models/llms/integrations/jsonformer_experimental.html
+- Document loader setup to replace the load conversation function
+
 # Mem-Med
 
 1. Create Memory that consistently updates
@@ -31,4 +37,3 @@ Knowledge Graph
     - https://twitter.com/LangChainAI/status/1657864015480242176
 
 
-testing testing please, final

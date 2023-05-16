@@ -69,12 +69,7 @@ def gpt_completion(prompt, model_name=GPT_VERSION, temp=0.0, top_p=1.0, tokens=4
             response = ChatOpenAI(
                     openai_api_key=openai.api_key,
                     model_name=GPT_VERSION,
-                    temperature=temp,
-                    max_tokens=tokens,
-                    top_p=top_p,
-                    frequency_penalty=freq_pen,
-                    presence_penalty=pres_pen,
-                    stop=stop
+                    temperature=temp
             )
             text = response['choices'][0]['text'].strip()
             text = re.sub('[\r\n]+', '\n', text)
@@ -136,9 +131,11 @@ if __name__ == '__main__':
         #### search for relevant messages, and generate a response
         results = index.query(vector=vector, top_k=convo_length)
         
+        
         # FIGURE out how compares to Conversation memory and retrieval QA, figure out if retrievalQA weight retrieving too heavily
         conversation = load_conversation(results)  # results should be a DICT with 'matches' which is a LIST of DICTS, with 'id'
-        
+        # also integrate best practices from orderbot
+
         prompt = open_file('prompt_response.txt').replace('<<CONVERSATION>>', conversation).replace('<<MESSAGE>>', message)
         #### generate response, vectorize, save, etc
         output = gpt_completion(prompt)
