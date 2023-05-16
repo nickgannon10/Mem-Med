@@ -5,7 +5,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import Pinecone
 from langchain.chains import RetrievalQA
 from langchain.agents import Tool
-from prompt import generate_prompt
+from prompt import jsonify_prompts,
 from dotenv import load_dotenv
 from numpy.linalg import norm
 from time import time,sleep
@@ -38,6 +38,11 @@ def load_json(filepath):
 def save_json(filepath, payload):
     with open(filepath, 'w', encoding='utf-8') as outfile:
         json.dump(payload, outfile, ensure_ascii=False, sort_keys=True, indent=2)
+
+def print_json_file(file_name):
+    with open(file_name, 'r') as file:
+        data = json.load(file)
+        print(json.dumps(data, indent=4))
 
 
 def timestamp_to_datetime(unix_time):
@@ -116,7 +121,7 @@ def gpt_completion(prompt, model_name=GPT_VERSION, conversational_memory=convers
 #     messages = [i['message'] for i in ordered]
 #     return '\n'.join(messages).strip()
 
-
+batch_messages = []
 if __name__ == '__main__':
     convo_length = 30
     openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -150,11 +155,12 @@ if __name__ == '__main__':
     while True:
 #         #### get user input, save it, vectorize it, save to pinecone
 #         payload = list()
-#         timestamp = time()
-#         timestring = timestamp_to_datetime(timestamp)
+        timestamp = time()
+        timestring = timestamp_to_datetime(timestamp)
+
         message = input('\n\nUSER: ')
-        print(type(message))
-        formatted_prompt = generate_prompt(message)
+        formatted_prompt = jsonify_prompts(message)
+        
         
         vectorstore.similarity_search(
             message,  # our search query

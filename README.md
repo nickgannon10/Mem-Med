@@ -1,7 +1,6 @@
 TO DO:
+- So I think you want a json version as well as a chat version, I think you want to make the same and have them update together. But the json version, will have more information and can be used to put in a normal database as well. 
 - Need to embed memory in vector DB
-- Need to create a JSON memory that can be loaded in
-    - https://python.langchain.com/en/latest/modules/models/llms/integrations/jsonformer_experimental.html
 - Document loader setup to replace the load conversation function
 
 # Mem-Med
