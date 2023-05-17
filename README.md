@@ -1,7 +1,12 @@
 TO DO:
 - So I think you want a json version as well as a chat version, I think you want to make the same and have them update together. But the json version, will have more information and can be used to put in a normal database as well. 
+- You do want to count tokens for all this schnitzel
 - Need to embed memory in vector DB
 - Document loader setup to replace the load conversation function
+- ETL (extract transform load)
+    - Launch a container for each customer, not filter on customer 
+- Will likely need some form of chaching 
+- Would love to make it such that the system goals is always the beginning of every context window, and only once. But that is sort of pie in the sky shit rn. 
 
 # Mem-Med
 

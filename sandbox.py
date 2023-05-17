@@ -1,11 +1,11 @@
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
+from prompt import jsonify_prompts, timestamp_to_datetime, append_to_json
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.agents import initialize_agent
 from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import Pinecone
 from langchain.chains import RetrievalQA
 from langchain.agents import Tool
-from prompt import jsonify_prompts,
 from dotenv import load_dotenv
 from numpy.linalg import norm
 from time import time,sleep
@@ -51,15 +51,6 @@ def timestamp_to_datetime(unix_time):
 
 model_name = os.getenv("MODEL_NAME")
 
-# def emedding(content, model_name=model_name):
-#     content = content.encode(encoding='ASCII',errors='ignore').decode()  # fix any UNICODE errors
-#     response = OpenAIEmbeddings(
-#         model=model_name,
-#         openai_api_key=openai.api_key
-#     )
-#     vector = response['data'][0]['embedding']  
-#     return vector
-
 GPT_VERSION = os.getenv("GPT_VERSION")
 
 conversational_memory = ConversationBufferWindowMemory(
@@ -70,56 +61,49 @@ conversational_memory = ConversationBufferWindowMemory(
 
 def gpt_completion(prompt, model_name=GPT_VERSION, conversational_memory=conversational_memory, temp=0.0, top_p=1.0, tokens=400, freq_pen=0.0, pres_pen=0.0, stop=['USER:', 'MED:']):
     while True:
-        # try:
-        llm = ChatOpenAI(
-                openai_api_key=openai.api_key,
-                model_name=GPT_VERSION,
-                temperature=temp
-        )
-
-        qa = RetrievalQA.from_chain_type(
-            llm=llm,
-            chain_type="stuff",
-            retriever=vectorstore.as_retriever()
-        )
-
-        tools = [
-            Tool(
-                name='Knowledge Base',
-                func=qa.run,
-                description=(
-                    'Do not use this tool, it does not have any relevant information about the topic.'
-                )
+        try:
+            llm = ChatOpenAI(
+                    openai_api_key=openai.api_key,
+                    model_name=GPT_VERSION,
+                    temperature=temp
             )
-        ]
 
-        agent = initialize_agent(
-            agent='chat-conversational-react-description',
-            tools=tools,
-            llm=llm,
-            verbose=True,
-            max_iterations=3,
-            early_stopping_method='generate',
-            memory=conversational_memory
-        )
+            qa = RetrievalQA.from_chain_type(
+                llm=llm,
+                chain_type="stuff",
+                retriever=vectorstore.as_retriever()
+            )
 
-        response = agent(prompt)
+            tools = [
+                Tool(
+                    name='Knowledge Base',
+                    func=qa.run,
+                    description=(
+                        'Do not use this tool, it does not have any relevant information about the topic.'
+                    )
+                )
+            ]
 
-        conversational_memory.save_context({"input": prompt}, {"output": response['output']})
+            agent = initialize_agent(
+                agent='chat-conversational-react-description',
+                tools=tools,
+                llm=llm,
+                verbose=True,
+                max_iterations=3,
+                early_stopping_method='generate',
+                memory=conversational_memory
+            )
 
-        response['chat_history'] = conversational_memory.load_memory_variables({})['chat_history']
+            response = agent(prompt)
+
+            conversational_memory.save_context({"input": prompt}, {"output": response['output']})
+            print(conversational_memory)
+
+            response['chat_history'] = conversational_memory.load_memory_variables({})['chat_history']
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
         return response
-
-
-# def load_conversation(results):
-#     result = list()
-#     for m in results['matches']:
-#         info = load_json('nexus/%s.json' % m['id'])
-#         result.append(info)
-#     ordered = sorted(result, key=lambda d: d['time'], reverse=False)  # sort them all chronologically
-#     messages = [i['message'] for i in ordered]
-#     return '\n'.join(messages).strip()
 
 batch_messages = []
 if __name__ == '__main__':
@@ -153,21 +137,19 @@ if __name__ == '__main__':
     )
 
     while True:
-#         #### get user input, save it, vectorize it, save to pinecone
-#         payload = list()
-        timestamp = time()
-        timestring = timestamp_to_datetime(timestamp)
 
         message = input('\n\nUSER: ')
-        formatted_prompt = jsonify_prompts(message)
-        
+        formatted_prompt = jsonify_prompts(user_input=message)
+        append_to_json("sandbox.json", formatted_prompt.__dict__)
+        prep_prompt = formatted_prompt.format(user_input=message)
+        print("\n\n %s" % prep_prompt)
         
         vectorstore.similarity_search(
             message,  # our search query
             k=3  # return 3 most relevant docs
         )
-        vector = gpt_completion(formatted_prompt)
-
+        vector = gpt_completion(prep_prompt)
+        print('\n\nRAVEN: %s' % vector["chat_history"])
 
 
 #         unique_id = str(uuid4())
@@ -195,4 +177,4 @@ if __name__ == '__main__':
 #         save_json('nexus/%s.json' % unique_id, metadata)
 #         payload.append((unique_id, vector))
 #         index.upsert(payload)
-        print('\n\nMED: %s' % vector) 
+        # print('\n\nRAVEN: %s' % vector["chat_history"])

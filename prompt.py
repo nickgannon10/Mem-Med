@@ -30,15 +30,23 @@ def jsonify_prompts(user_input):
 def timestamp_to_datetime(unix_time):
     return datetime.datetime.fromtimestamp(unix_time).strftime("%A, %B %d, %Y at %I:%M%p %Z")
 
-def print_json_file(file_name):
-    with open(file_name, 'r') as file:
-        data = json.load(file)
-        print(json.dumps(data, indent=4))
+def append_to_json(file_name, data):
+    # print(f"Appending data to {file_name}...")
+    try:
+        with open(file_name, 'r') as file:
+            existing_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        existing_data = []
+    
+    existing_data.append(data)
 
-response_number = 0
-while True:
-    message = input('\n\nUSER: ')
-    formatted_prompt = jsonify_prompts(user_input=message)
-    formatted_prompt.save("awesome_prompt.json") # Save to JSON file
-    print_json_file("awesome_prompt.json")
+    with open(file_name, 'w') as file:
+        json.dump(existing_data, file, indent=4)
+
+# response_number = 0
+# while True:
+#     message = input('\n\nUSER: ')
+#     formatted_prompt = jsonify_prompts(user_input=message)
+#     append_to_json("awesome_prompt.json", formatted_prompt.__dict__)
+#     print(formatted_prompt.format(user_input=message))
 
