@@ -5,6 +5,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.callbacks import get_openai_callback
 from langchain.agents import initialize_agent
 from langchain.chat_models import ChatOpenAI
+from langchain.prompts import PromptTemplate
 from langchain.vectorstores import Pinecone
 from langchain.chains import RetrievalQA
 from langchain.agents import Tool
@@ -19,6 +20,8 @@ import openai
 import json
 import os
 import re
+
+
 
 load_dotenv()
 
@@ -73,11 +76,21 @@ def gpt_completion(prompt, model_name=GPT_VERSION, conversational_memory=convers
         )
         with get_openai_callback() as cb:
             response = qa({"question": prompt})
-            print(f'Spent a total of {cb.total_tokens} tokens')
+            total_tokens = cb.total_tokens
 
-        return response
+        return response, total_tokens, conversational_memory
 
-
+def append_output_json(prompt_template, vector, total_tokens):
+    chat_history = []
+    for message in vector['chat_history']:
+        chat_history.append(message.__dict__)
+    prompt_template.__dict__["output_parser"] = {
+        "question": vector['question'], 
+        "chat_history": chat_history, 
+        "answer": vector['answer'],
+        "total_tokens": total_tokens
+    }
+    return prompt_template
 
 if __name__ == '__main__':
     convo_length = 30
@@ -114,7 +127,6 @@ if __name__ == '__main__':
 
         message = input('\n\nUSER: ')
         formatted_prompt = jsonify_prompts(user_input=message)
-        append_to_json("sandbox_2.json", formatted_prompt.__dict__)
         prep_prompt = formatted_prompt.format(user_input=message)
 
         vectorstore.similarity_search(
@@ -122,5 +134,32 @@ if __name__ == '__main__':
             k=3  # return 3 most relevant docs
         )
 
-        vector = gpt_completion(prep_prompt)
-        print('\n\nRAVEN: %s' % vector)
+        vector, total_tokens, conversational_memory = gpt_completion(prep_prompt)
+
+        append_output_json(formatted_prompt, vector, total_tokens)
+
+        append_to_json("sandbox_2.json", formatted_prompt.__dict__)
+
+        print('\n\nRAVEN_QUESTION: %s' % vector['question'])
+        print('\n\nRAVEN_CHAT_HISTORY: %s' % vector['chat_history'])
+        print('\n\nRAVEN_ANSWER: %s' % vector['answer'])
+        print('\n\nRAVEN_conversation_buffer_memory: %s' % conversational_memory)
+
+        # 1. after gpt_completetion is generated, we want to append the output into the json
+            # file in the "output parser" 
+            # something like this:
+            # "output parser": {
+            #    "output": "someoutput" 
+            #    "chat_history": []
+            #    "full_conversational_buffer_memory": []
+            #    "token_count_of_conversational_buffer_memory": 1200
+            # }
+
+        # 2. next we want to do two things: 
+            # 1. re-format this information with the data and metadata that pinecone will accept
+            # 2. embed that re-formatted chunk into a pinecone index
+
+        # 3. We want to load the conversation memory back into apon re-starting such 
+        # such that the conversation neatly continues where it left off
+
+
